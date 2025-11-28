@@ -306,7 +306,7 @@ CREATE TABLE `t_server`  (
 -- ----------------------------
 -- Records of t_server
 -- ----------------------------
-INSERT INTO `t_server` VALUES (1, '测试服务器', '101.201.55.110', 22, 'root', 'PASSWORD', 'mars6662025@', '', '/opt/deploy', '', '', 'ONLINE', '2025-11-28 11:31:23', '2025-11-28 11:31:23', 0);
+INSERT INTO `t_server` VALUES (1, '测试服务器', '101.201.55.110', 22, 'root', 'PASSWORD', '123456', '', '/opt/deploy', '', '', 'ONLINE', '2025-11-28 11:31:23', '2025-11-28 11:31:23', 0);
 
 -- ----------------------------
 -- Table structure for t_system_log
