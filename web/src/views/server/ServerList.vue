@@ -274,7 +274,12 @@ const formState = reactive({
 const rules = {
   name: { required: true, message: '请输入服务器名称', trigger: 'blur' },
   host: { required: true, message: '请输入主机地址', trigger: 'blur' },
-  port: { required: true, message: '请输入端口', trigger: 'blur' },
+  port: { 
+    required: true, 
+    type: 'number',
+    message: '请输入端口', 
+    trigger: ['blur', 'change'] 
+  },
   username: { required: true, message: '请输入用户名', trigger: 'blur' },
   authType: { required: true, message: '请选择认证方式', trigger: 'change' }
 }

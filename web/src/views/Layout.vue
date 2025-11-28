@@ -16,7 +16,7 @@
         </n-icon>
         <span v-if="!collapsed" class="logo-text">MarsDeploy</span>
       </div>
-      
+
       <n-menu
         v-model:value="activeKey"
         :collapsed="collapsed"
@@ -25,12 +25,12 @@
         :options="menuOptions"
         @update:value="handleMenuSelect"
       />
-      
+
       <div class="version-info" v-if="!collapsed">
         <n-text depth="3" style="font-size: 12px; color: #999;">Mars-Deploy v1.0</n-text>
       </div>
     </n-layout-sider>
-    
+
     <n-layout>
       <n-layout-header bordered class="header">
         <div class="header-content">
@@ -39,7 +39,7 @@
               <n-breadcrumb-item>{{ currentMenuName }}</n-breadcrumb-item>
             </n-breadcrumb>
           </div>
-          
+
           <div class="header-right">
             <n-space :size="16" align="center">
               <n-tooltip placement="bottom">
@@ -53,7 +53,7 @@
                 </template>
                 {{ isFullscreen ? '退出全屏' : '全屏' }}
               </n-tooltip>
-              
+
               <n-tooltip placement="bottom">
                 <template #trigger>
                   <n-button text class="icon-button" @click="openGithub">
@@ -64,7 +64,7 @@
                 </template>
                 查看源码
               </n-tooltip>
-              
+
               <n-dropdown :options="userOptions" @select="handleUserAction">
                 <div class="user-info">
                   <n-avatar round size="small" :style="{ background: '#18a058' }">
@@ -77,7 +77,7 @@
           </div>
         </div>
       </n-layout-header>
-      
+
       <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
         <router-view />
       </n-layout-content>
@@ -160,7 +160,7 @@ const currentMenuName = computed(() => {
   // 先尝试一级菜单
   let menu = menuOptions.value.find(item => item.key === activeKey.value)
   if (menu) return menu.label
-  
+
   // 尝试二级菜单
   for (const item of menuOptions.value) {
     if (item.children) {
@@ -168,7 +168,7 @@ const currentMenuName = computed(() => {
       if (child) return child.label
     }
   }
-  
+
   return '仪表盘'
 })
 
@@ -232,7 +232,7 @@ const handleFullscreenChange = () => {
 
 // 打开 GitHub
 const openGithub = () => {
-  window.open('https://github.com/mars-deploy/mars-deploy', '_blank')
+  window.open('https://gitee.com/Marsfactory/mars-deploy', '_blank')
 }
 
 onMounted(() => {
