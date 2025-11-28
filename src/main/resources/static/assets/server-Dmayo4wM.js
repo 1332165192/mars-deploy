@@ -1,0 +1,1 @@
+import{r}from"./_plugin-vue_export-helper-BD_vjw2A.js";const s=e=>r.get("/server/list",{params:e}),n=e=>r.post("/server",e),o=e=>r.put("/server",e),a=e=>r.delete(`/server/${e}`),u=e=>r.post(`/server/test/${e}`);export{n as a,a as d,s as g,u as t,o as u};

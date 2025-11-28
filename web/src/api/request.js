@@ -28,18 +28,51 @@ request.interceptors.response.use(
     
     if (res.code === 200) {
       return res.data
+    } else if (res.code === 401 || res.code === 403) {
+      // token 无效或过期
+      message.error(res.message || '登录已过期，请重新登录')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      router.push('/login')
+      return Promise.reject(new Error(res.message || 'Token无效'))
+    } else if (res.code === 500 && res.message && (res.message.includes('token') || res.message.includes('无效'))) {
+      // token 无效（后端返回 500 但消息包含 token 关键字）
+      message.error('登录已过期，请重新登录')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      router.push('/login')
+      return Promise.reject(new Error('Token无效'))
     } else {
       message.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message || '请求失败'))
     }
   },
   error => {
-    if (error.response && error.response.status === 401) {
-      message.error('登录已过期，请重新登录')
-      localStorage.removeItem('token')
-      router.push('/login')
+    if (error.response) {
+      const status = error.response.status
+      const data = error.response.data
+      
+      if (status === 401 || status === 403) {
+        // token 无效或过期
+        message.error(data?.message || '登录已过期，请重新登录')
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        router.push('/login')
+      } else if (status === 500) {
+        // 检查是否是 token 相关错误
+        if (data?.message && (data.message.includes('token') || data.message.includes('无效'))) {
+          message.error('登录已过期，请重新登录')
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          router.push('/login')
+        } else {
+          message.error(data?.message || '服务器错误')
+        }
+      } else {
+        message.error(data?.message || error.message || '网络错误')
+      }
     } else {
-      message.error(error.message || '网络错误')
+      message.error(error.message || '网络连接失败')
     }
     return Promise.reject(error)
   }
