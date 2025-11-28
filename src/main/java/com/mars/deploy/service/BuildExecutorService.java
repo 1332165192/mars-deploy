@@ -131,9 +131,9 @@ public class BuildExecutorService {
 
             } finally {
                 // 清理工作目录（除非配置了保留）
-//                if (!keepWorkspace) {
-//                    cleanupWorkspaceDir(projectDir, logConsumer);
-//                }
+                if (!keepWorkspace) {
+                    cleanupWorkspaceDir(projectDir, logConsumer);
+                }
             }
 
         } catch (Exception e) {
