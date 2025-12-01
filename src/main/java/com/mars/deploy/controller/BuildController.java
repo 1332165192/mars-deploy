@@ -2,6 +2,7 @@ package com.mars.deploy.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Build;
 import com.mars.deploy.entity.Project;
@@ -118,6 +119,7 @@ public class BuildController {
         return Result.success(build);
     }
     
+    @OperationLog(module = "构建管理", type = "触发构建", description = "触发项目构建")
     @PostMapping("/trigger")
     public Result<Map<String, Object>> trigger(@RequestBody Map<String, Long> params) {
         Long projectId = params.get("projectId");
@@ -153,6 +155,7 @@ public class BuildController {
         return "OWNER".equals(roleType) || "DEVELOPER".equals(roleType);
     }
     
+    @OperationLog(module = "构建管理", type = "删除", description = "删除构建记录")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         buildService.removeById(id);

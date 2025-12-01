@@ -3,6 +3,7 @@ package com.mars.deploy.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Project;
 import com.mars.deploy.entity.ProjectMember;
@@ -78,6 +79,7 @@ public class ProjectController {
         return Result.success(result);
     }
     
+    @OperationLog(module = "项目管理", type = "新增", description = "创建项目")
     @PostMapping
     public Result<String> save(@RequestBody Map<String, Object> params) {
         Long userId = Long.parseLong(StpUtil.getLoginIdAsString());
@@ -116,6 +118,7 @@ public class ProjectController {
         return Result.success("添加成功");
     }
     
+    @OperationLog(module = "项目管理", type = "编辑", description = "更新项目")
     @PutMapping
     public Result<String> update(@RequestBody Map<String, Object> params) {
         Long userId = Long.parseLong(StpUtil.getLoginIdAsString());
@@ -157,6 +160,7 @@ public class ProjectController {
         return Result.success("更新成功");
     }
     
+    @OperationLog(module = "项目管理", type = "删除", description = "删除项目")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         Long userId = Long.parseLong(StpUtil.getLoginIdAsString());
@@ -208,6 +212,7 @@ public class ProjectController {
     /**
      * 分配项目成员
      */
+    @OperationLog(module = "项目管理", type = "分配成员", description = "分配项目成员")
     @PostMapping("/{projectId}/members")
     public Result<String> assignMembers(
             @PathVariable Long projectId,
@@ -245,6 +250,7 @@ public class ProjectController {
     /**
      * 移除项目成员
      */
+    @OperationLog(module = "项目管理", type = "移除成员", description = "移除项目成员")
     @DeleteMapping("/{projectId}/members/{memberId}")
     public Result<String> removeMember(
             @PathVariable Long projectId,

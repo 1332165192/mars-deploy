@@ -3,6 +3,7 @@ package com.mars.deploy.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Role;
 import com.mars.deploy.entity.User;
@@ -68,6 +69,7 @@ public class UserController {
         return Result.success(user);
     }
 
+    @OperationLog(module = "用户管理", type = "新增", description = "添加用户")
     @PostMapping
     public Result<String> add(@RequestBody Map<String, Object> params) {
         User user = new User();
@@ -100,6 +102,7 @@ public class UserController {
         return Result.success("添加成功");
     }
 
+    @OperationLog(module = "用户管理", type = "编辑", description = "更新用户")
     @PutMapping
     public Result<String> update(@RequestBody Map<String, Object> params) {
         Long id = Long.valueOf(params.get("id").toString());
@@ -138,6 +141,7 @@ public class UserController {
         return Result.success("更新成功");
     }
 
+    @OperationLog(module = "用户管理", type = "删除", description = "删除用户")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         // 不能删除自己

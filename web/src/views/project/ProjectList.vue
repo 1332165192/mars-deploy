@@ -90,7 +90,7 @@
                 <!-- 管理按钮组 -->
                 <n-space v-if="canManageProject" :size="8">
                   <n-button secondary size="small" type="warning" @click="showMemberModal(project.id)">
-                    <template #icon><n-icon><PeopleSharp /></n-icon></template>
+                    <template #icon><n-icon><PeopleSharp  /></n-icon></template>
                   </n-button>
                   <n-button secondary size="small" type="success" @click="showModal(project)">
                     <template #icon><n-icon><CreateSharp /></n-icon></template>

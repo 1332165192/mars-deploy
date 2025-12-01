@@ -2,6 +2,7 @@ package com.mars.deploy.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Role;
 import com.mars.deploy.service.RoleService;
@@ -45,18 +46,21 @@ public class RoleController {
         return Result.success(roleService.getById(id));
     }
     
+    @OperationLog(module = "角色管理", type = "新增", description = "添加角色")
     @PostMapping
     public Result<String> add(@RequestBody Role role) {
         roleService.save(role);
         return Result.success("添加成功");
     }
     
+    @OperationLog(module = "角色管理", type = "编辑", description = "更新角色")
     @PutMapping
     public Result<String> update(@RequestBody Role role) {
         roleService.updateById(role);
         return Result.success("更新成功");
     }
     
+    @OperationLog(module = "角色管理", type = "删除", description = "删除角色")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         roleService.removeById(id);

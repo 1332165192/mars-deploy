@@ -2,6 +2,7 @@ package com.mars.deploy.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Server;
 import com.mars.deploy.service.ProjectServerService;
@@ -42,18 +43,21 @@ public class ServerController {
         return Result.success(serverService.getById(id));
     }
     
+    @OperationLog(module = "服务器管理", type = "新增", description = "添加服务器")
     @PostMapping
     public Result<String> save(@RequestBody Server server) {
         serverService.saveOrUpdateServer(server);
         return Result.success("添加成功");
     }
     
+    @OperationLog(module = "服务器管理", type = "编辑", description = "更新服务器")
     @PutMapping
     public Result<String> update(@RequestBody Server server) {
         serverService.saveOrUpdateServer(server);
         return Result.success("更新成功");
     }
     
+    @OperationLog(module = "服务器管理", type = "删除", description = "删除服务器")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         // 检查服务器是否关联了项目

@@ -3,6 +3,7 @@ package com.mars.deploy.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Menu;
 import com.mars.deploy.entity.Role;
@@ -86,6 +87,7 @@ public class MenuController {
     /**
      * 添加菜单
      */
+    @OperationLog(module = "菜单管理", type = "新增", description = "添加菜单")
     @PostMapping
     public Result<String> add(@RequestBody Menu menu) {
         menuService.save(menu);
@@ -95,6 +97,7 @@ public class MenuController {
     /**
      * 更新菜单
      */
+    @OperationLog(module = "菜单管理", type = "编辑", description = "更新菜单")
     @PutMapping
     public Result<String> update(@RequestBody Menu menu) {
         menuService.updateById(menu);
@@ -104,6 +107,7 @@ public class MenuController {
     /**
      * 删除菜单
      */
+    @OperationLog(module = "菜单管理", type = "删除", description = "删除菜单")
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
         menuService.removeById(id);
@@ -122,6 +126,7 @@ public class MenuController {
     /**
      * 为角色分配菜单
      */
+    @OperationLog(module = "菜单管理", type = "分配权限", description = "为角色分配菜单权限")
     @PostMapping("/role/{roleId}")
     public Result<String> assignRoleMenus(
             @PathVariable Long roleId,

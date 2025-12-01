@@ -116,7 +116,10 @@ import {
   LogoGithub,
   ExtensionPuzzleSharp,
   MoonSharp,
-  SunnySharp
+  SunnySharp,
+  DocumentTextSharp,
+  LogInSharp,
+  ListSharp
 } from '@vicons/ionicons5'
 import { logout } from '@/api/auth'
 import { getUserMenus } from '@/api/menu'
@@ -149,7 +152,10 @@ const renderIcon = (iconName) => {
     PeopleSharp,
     ShieldCheckmarkSharp,
     MenuSharp,
-    ExtensionPuzzleSharp
+    ExtensionPuzzleSharp,
+    DocumentTextSharp,
+    LogInSharp,
+    ListSharp
   }
   const IconComponent = iconMap[iconName]
   return () => h(NIcon, null, { default: () => h(IconComponent || SpeedometerSharp) })
