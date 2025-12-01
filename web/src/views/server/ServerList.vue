@@ -380,7 +380,7 @@ const columns = [
                 onPositiveClick: () => handleDelete(row.id)
               },
               {
-                default: () => '确定要删除吗？',
+                default: () => '确定要删除该服务器吗？如果服务器已关联项目，将无法删除。',
                 trigger: () => h(
                   NButton,
                   {

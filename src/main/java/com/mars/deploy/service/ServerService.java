@@ -1,11 +1,15 @@
 package com.mars.deploy.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.jcraft.jsch.Session;
+import com.mars.deploy.entity.ProjectServer;
 import com.mars.deploy.entity.Server;
+import com.mars.deploy.mapper.ProjectServerMapper;
 import com.mars.deploy.mapper.ServerMapper;
 import com.mars.deploy.utils.SshUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -17,6 +21,9 @@ import java.util.Map;
 @Slf4j
 @Service
 public class ServerService extends ServiceImpl<ServerMapper, Server> {
+    
+    @Autowired
+    private ProjectServerMapper projectServerMapper;
     
     /**
      * 测试服务器连接
@@ -38,6 +45,15 @@ public class ServerService extends ServiceImpl<ServerMapper, Server> {
         boolean connected = testConnection(server);
         server.setStatus(connected ? "ONLINE" : "OFFLINE");
         return this.saveOrUpdate(server);
+    }
+    
+    /**
+     * 检查服务器是否关联了项目
+     */
+    public boolean hasRelatedProjects(Long serverId) {
+        LambdaQueryWrapper<ProjectServer> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ProjectServer::getServerId, serverId);
+        return projectServerMapper.selectCount(wrapper) > 0;
     }
     
     /**

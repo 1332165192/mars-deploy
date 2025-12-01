@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Server;
+import com.mars.deploy.service.ProjectServerService;
 import com.mars.deploy.service.ServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,9 @@ public class ServerController {
     
     @Autowired
     private ServerService serverService;
+    
+    @Autowired
+    private ProjectServerService projectServerService;
     
     @GetMapping("/list")
     public Result<Page<Server>> list(
@@ -52,6 +56,12 @@ public class ServerController {
     
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Long id) {
+        // 检查服务器是否关联了项目
+        boolean hasProjects = serverService.hasRelatedProjects(id);
+        if (hasProjects) {
+            return Result.error("该服务器已关联项目，无法删除");
+        }
+        
         serverService.removeById(id);
         return Result.success("删除成功");
     }
