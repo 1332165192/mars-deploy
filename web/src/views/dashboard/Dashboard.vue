@@ -141,9 +141,41 @@
     <n-card title="更新日志" :bordered="false" style="margin-top: 16px;">
       <n-timeline>
         <n-timeline-item
+          type="warning"
+          title="v1.2.0"
+          time="2025-12-02"
+        >
+          <template #default>
+            <n-space vertical size="small" style="margin-top: 8px;">
+              <n-text depth="2">• 文件管理：支持服务器文件浏览、上传、下载、删除等操作</n-text>
+              <n-text depth="2">• 服务器监控：新增服务器监控面板，实时查看 CPU、内存、磁盘、网络等统计信息</n-text>
+              <n-text depth="2">• 可视化图表：监控面板采用 ECharts 仪表盘图表，数据展示更直观</n-text>
+              <n-text depth="2">• 全屏模式：SSH 控制台和监控面板均支持全屏展示</n-text>
+              <n-text depth="2">• 交互优化：监控面板支持手动刷新，操作更灵活</n-text>
+            </n-space>
+          </template>
+        </n-timeline-item>
+        
+        <n-timeline-item
+          type="info"
+          title="v1.1.0"
+          time="2025-12-01"
+        >
+          <template #default>
+            <n-space vertical size="small" style="margin-top: 8px;">
+              <n-text depth="2">• 主题切换：支持亮色/暗黑模式自由切换，优化视觉体验</n-text>
+              <n-text depth="2">• 插件市场：一键安装基础环境（Git、JDK、Node.js、Docker、Python、Maven）</n-text>
+              <n-text depth="2">• 插件市场：一键安装中间件（Nginx、MySQL、Redis、MongoDB）</n-text>
+              <n-text depth="2">• 实时日志：插件安装/卸载过程 WebSocket 实时日志推送</n-text>
+              <n-text depth="2">• 失败重试：支持安装失败后重新安装，自动清理失败记录</n-text>
+            </n-space>
+          </template>
+        </n-timeline-item>
+        
+        <n-timeline-item
           type="success"
           title="v1.0.0"
-          content="2024-01-15"
+          time="2025-11-20"
         >
           <template #default>
             <n-space vertical size="small" style="margin-top: 8px;">
@@ -457,7 +489,6 @@ onMounted(() => {
 .info-section {
   text-align: center;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
   border-radius: 8px;
   transition: all 0.3s;
 }
@@ -471,7 +502,6 @@ onMounted(() => {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
 }
 
 .info-section :deep(.n-space) {

@@ -162,7 +162,6 @@ const handleLogin = async () => {
   width: 100%;
   height: 100vh;
   display: flex;
-  background: #f5f7fa;
 }
 
 .login-left {
@@ -252,7 +251,6 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -269,13 +267,12 @@ const handleLogin = async () => {
 .login-header h2 {
   font-size: 28px;
   font-weight: bold;
-  color: #333;
   margin-bottom: 8px;
 }
 
 .login-header p {
-  color: #999;
   font-size: 14px;
+  opacity: 0.6;
 }
 
 .login-tips {

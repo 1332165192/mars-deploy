@@ -55,6 +55,16 @@ const routes = [
         path: 'profile',
         name: 'Profile',
         component: () => import('../views/profile/Profile.vue')
+      },
+      {
+        path: 'plugin',
+        name: 'PluginStore',
+        component: () => import('../views/plugin/PluginStore.vue')
+      },
+      {
+        path: 'file',
+        name: 'FileManager',
+        component: () => import('../views/file/FileManager.vue')
       }
     ]
   }

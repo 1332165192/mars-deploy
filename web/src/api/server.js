@@ -29,3 +29,8 @@ export const deleteServer = (id) => {
 export const testConnection = (id) => {
   return request.post(`/server/test/${id}`)
 }
+
+// 获取服务器监控信息
+export const getServerMonitor = (id) => {
+  return request.get(`/server/monitor/${id}`)
+}

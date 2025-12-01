@@ -95,22 +95,145 @@
     <!-- SSH 控制台弹窗 -->
     <n-modal
       v-model:show="consoleVisible"
-      :title="`SSH 控制台 - ${currentServer?.name || ''}`"
-      preset="dialog"
-      style="width: 90%; max-width: 1200px;"
-      :show-icon="false"
-      :closable="true"
+      preset="card"
+      :style="consoleFullscreen ? 'width: 100vw; height: 100vh; max-width: 100vw; top: 0; padding: 0;' : 'width: 90%; max-width: 1200px;'"
+      :bordered="false"
+      :closable="false"
+      :mask-closable="false"
       @after-leave="closeConsole"
     >
-      <div class="terminal-container">
+      <template #header>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>SSH 控制台 - {{ currentServer?.name || '' }}</span>
+          <n-space>
+            <n-button text @click="toggleConsoleFullscreen">
+              <template #icon>
+                <n-icon><component :is="consoleFullscreen ? ContractSharp : ExpandSharp" /></n-icon>
+              </template>
+              {{ consoleFullscreen ? '退出全屏' : '全屏' }}
+            </n-button>
+            <n-button text @click="closeConsole">
+              <template #icon>
+                <n-icon><CloseSharp /></n-icon>
+              </template>
+              关闭
+            </n-button>
+          </n-space>
+        </div>
+      </template>
+      
+      <div class="terminal-container" :style="consoleFullscreen ? 'height: calc(100vh - 100px);' : 'height: 600px;'">
         <div ref="terminalRef" class="terminal"></div>
       </div>
-      
-      <template #action>
-        <n-space>
-          <n-button @click="closeConsole">关闭</n-button>
-        </n-space>
+    </n-modal>
+    
+    <!-- 监控面板弹窗 -->
+    <n-modal
+      v-model:show="monitorVisible"
+      preset="card"
+      :style="monitorFullscreen ? 'width: 100vw; height: 100vh; max-width: 100vw; top: 0; padding: 0;' : 'width: 95%; max-width: 1400px;'"
+      :bordered="false"
+      :closable="false"
+      :mask-closable="false"
+      @after-leave="closeMonitor"
+    >
+      <template #header>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>服务器监控 - {{ currentServer?.name || '' }}</span>
+          <n-space>
+            <n-button text @click="loadMonitorData" :loading="monitorLoading">
+              <template #icon>
+                <n-icon><RefreshSharp /></n-icon>
+              </template>
+              立即刷新
+            </n-button>
+            <n-button text @click="toggleFullscreen">
+              <template #icon>
+                <n-icon><component :is="monitorFullscreen ? ContractSharp : ExpandSharp" /></n-icon>
+              </template>
+              {{ monitorFullscreen ? '退出全屏' : '全屏' }}
+            </n-button>
+            <n-button text @click="closeMonitor">
+              <template #icon>
+                <n-icon><CloseSharp /></n-icon>
+              </template>
+              关闭
+            </n-button>
+          </n-space>
+        </div>
       </template>
+      
+      <n-spin :show="monitorLoading">
+        <div class="monitor-container" :style="monitorFullscreen ? 'height: calc(100vh - 100px); overflow-y: auto;' : ''">
+          <!-- 系统信息卡片 -->
+          <n-card title="系统信息" :bordered="false" class="monitor-info-card">
+            <n-descriptions :column="3" label-placement="left">
+              <n-descriptions-item label="主机名">
+                <n-text type="success">
+                  <n-icon style="vertical-align: middle; margin-right: 4px;">
+                    <ServerSharp />
+                  </n-icon>
+                  {{ monitorData.hostname || 'N/A' }}
+                </n-text>
+              </n-descriptions-item>
+              <n-descriptions-item label="操作系统">
+                {{ monitorData.os || 'N/A' }}
+              </n-descriptions-item>
+              <n-descriptions-item label="运行时间">
+                {{ monitorData.uptime || 'N/A' }}
+              </n-descriptions-item>
+              <n-descriptions-item label="CPU核心数">
+                <n-tag type="info" size="small">{{ monitorData.cpuCores || 0 }} 核</n-tag>
+              </n-descriptions-item>
+              <n-descriptions-item label="进程数">
+                <n-tag type="warning" size="small">{{ monitorData.processCount || 0 }}</n-tag>
+              </n-descriptions-item>
+              <n-descriptions-item label="负载均值">
+                <n-tag type="error" size="small">{{ monitorData.loadAvg || 'N/A' }}</n-tag>
+              </n-descriptions-item>
+            </n-descriptions>
+          </n-card>
+          
+          <!-- 仪表盘图表 -->
+          <n-grid :x-gap="16" :y-gap="16" :cols="3" style="margin-top: 16px;">
+            <n-gi>
+              <n-card title="CPU使用率" :bordered="false" class="chart-card">
+                <div id="cpuChart" :style="monitorFullscreen ? 'width: 100%; height: 350px;' : 'width: 100%; height: 280px;'"></div>
+                <div class="chart-info">
+                  <n-text depth="3">当前使用: </n-text>
+                  <n-text strong type="info">{{ (monitorData.cpuUsage || 0).toFixed(2) }}%</n-text>
+                </div>
+              </n-card>
+            </n-gi>
+            
+            <n-gi>
+              <n-card title="内存使用率" :bordered="false" class="chart-card">
+                <div id="memChart" :style="monitorFullscreen ? 'width: 100%; height: 350px;' : 'width: 100%; height: 280px;'"></div>
+                <div class="chart-info">
+                  <n-text depth="3">已用: </n-text>
+                  <n-text strong type="warning">{{ monitorData.memUsed || 0 }}MB</n-text>
+                  <n-text depth="3"> / 总计: </n-text>
+                  <n-text strong>{{ monitorData.memTotal || 0 }}MB</n-text>
+                </div>
+              </n-card>
+            </n-gi>
+            
+            <n-gi>
+              <n-card title="磁盘使用率" :bordered="false" class="chart-card">
+                <div id="diskChart" :style="monitorFullscreen ? 'width: 100%; height: 350px;' : 'width: 100%; height: 280px;'"></div>
+                <div class="chart-info">
+                  <n-text depth="3">已用: </n-text>
+                  <n-text strong type="error">{{ monitorData.diskUsed || 'N/A' }}</n-text>
+                  <n-text depth="3"> / 总计: </n-text>
+                  <n-text strong>{{ monitorData.diskTotal || 'N/A' }}</n-text>
+                </div>
+              </n-card>
+            </n-gi>
+          </n-grid>
+          
+
+        </div>
+      </n-spin>
     </n-modal>
   </div>
 </template>
@@ -118,22 +241,28 @@
 <script setup>
 import { ref, reactive, onMounted, h, nextTick } from 'vue'
 import { useMessage, NButton, NSpace, NTag, NBadge, NPopconfirm } from 'naive-ui'
-import { SearchSharp, AddSharp, TerminalSharp, CheckmarkCircleSharp, CreateSharp, TrashSharp } from '@vicons/ionicons5'
-import { getServerList, addServer, updateServer, deleteServer, testConnection } from '@/api/server'
+import { SearchSharp, AddSharp, TerminalSharp, CheckmarkCircleSharp, CreateSharp, TrashSharp, BarChartSharp, ServerSharp, RefreshSharp, ExpandSharp, ContractSharp, CloseSharp } from '@vicons/ionicons5'
+import { getServerList, addServer, updateServer, deleteServer, testConnection, getServerMonitor } from '@/api/server'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
+import * as echarts from 'echarts'
 
 const message = useMessage()
 const loading = ref(false)
 const visible = ref(false)
 const consoleVisible = ref(false)
+const consoleFullscreen = ref(false)
+const monitorVisible = ref(false)
+const monitorFullscreen = ref(false)
 const editId = ref(null)
 const searchName = ref('')
 const formRef = ref()
 const testingId = ref(null)
 const terminalRef = ref(null)
 const currentServer = ref(null)
+const monitorLoading = ref(false)
+const monitorData = ref({})
 
 let terminal = null
 let fitAddon = null
@@ -185,13 +314,26 @@ const columns = [
   { 
     title: '操作', 
     key: 'action', 
-    width: 320,
+    width: 400,
     render: (row) => {
       return h(
         NSpace,
         {},
         {
           default: () => [
+            h(
+              NButton,
+              {
+                text: true,
+                type: 'warning',
+                size: 'small',
+                onClick: () => openMonitor(row)
+              },
+              { 
+                default: () => '监控面板',
+                icon: () => h('i', { class: 'n-icon' }, [h(BarChartSharp)])
+              }
+            ),
             h(
               NButton,
               {
@@ -376,6 +518,330 @@ const testConn = async (id) => {
   }
 }
 
+// 打开监控面板
+const openMonitor = (server) => {
+  currentServer.value = server
+  monitorVisible.value = true
+  loadMonitorData()
+}
+
+// 加载监控数据
+const loadMonitorData = async () => {
+  if (!currentServer.value) return
+  
+  try {
+    monitorLoading.value = true
+    const data = await getServerMonitor(currentServer.value.id)
+    monitorData.value = data
+    
+    // 初始化或更新图表
+    nextTick(() => {
+      initMonitorCharts()
+    })
+  } catch (error) {
+    console.error('加载监控数据失败:', error)
+    message.error('获取监控数据失败')
+  } finally {
+    monitorLoading.value = false
+  }
+}
+
+// 关闭监控面板
+const closeMonitor = () => {
+  monitorVisible.value = false
+  monitorFullscreen.value = false
+  currentServer.value = null
+  monitorData.value = {}
+}
+
+// 切换全屏
+const toggleFullscreen = () => {
+  monitorFullscreen.value = !monitorFullscreen.value
+  // 延迟调整图表大小
+  setTimeout(() => {
+    const cpuChart = echarts.getInstanceByDom(document.getElementById('cpuChart'))
+    const memChart = echarts.getInstanceByDom(document.getElementById('memChart'))
+    const diskChart = echarts.getInstanceByDom(document.getElementById('diskChart'))
+    const netChart = echarts.getInstanceByDom(document.getElementById('netChart'))
+    cpuChart?.resize()
+    memChart?.resize()
+    diskChart?.resize()
+    netChart?.resize()
+  }, 300)
+}
+
+// 初始化监控图表
+const initMonitorCharts = () => {
+  // CPU使用率仪表盘
+  const cpuChart = echarts.init(document.getElementById('cpuChart'))
+  cpuChart.setOption({
+    series: [{
+      type: 'gauge',
+      startAngle: 180,
+      endAngle: 0,
+      min: 0,
+      max: 100,
+      splitNumber: 8,
+      axisLine: {
+        lineStyle: {
+          width: 6,
+          color: [
+            [0.3, '#18a058'],
+            [0.7, '#f0a020'],
+            [1, '#d03050']
+          ]
+        }
+      },
+      pointer: {
+        icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
+        length: '12%',
+        width: 20,
+        offsetCenter: [0, '-60%'],
+        itemStyle: {
+          color: 'auto'
+        }
+      },
+      axisTick: {
+        length: 12,
+        lineStyle: {
+          color: 'auto',
+          width: 2
+        }
+      },
+      splitLine: {
+        length: 20,
+        lineStyle: {
+          color: 'auto',
+          width: 5
+        }
+      },
+      axisLabel: {
+        color: '#464646',
+        fontSize: 14,
+        distance: -60,
+        formatter: function (value) {
+          return value + '%'
+        }
+      },
+      title: {
+        offsetCenter: [0, '-20%'],
+        fontSize: 16,
+        color: '#464646'
+      },
+      detail: {
+        fontSize: 30,
+        offsetCenter: [0, '0%'],
+        valueAnimation: true,
+        formatter: function (value) {
+          return Math.round(value) + '%'
+        },
+        color: 'auto'
+      },
+      data: [{
+        value: monitorData.value.cpuUsage || 0,
+        name: 'CPU使用率'
+      }]
+    }]
+  })
+  
+  // 内存使用率仪表盘
+  const memChart = echarts.init(document.getElementById('memChart'))
+  memChart.setOption({
+    series: [{
+      type: 'gauge',
+      startAngle: 180,
+      endAngle: 0,
+      min: 0,
+      max: 100,
+      splitNumber: 8,
+      axisLine: {
+        lineStyle: {
+          width: 6,
+          color: [
+            [0.3, '#18a058'],
+            [0.7, '#f0a020'],
+            [1, '#d03050']
+          ]
+        }
+      },
+      pointer: {
+        icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
+        length: '12%',
+        width: 20,
+        offsetCenter: [0, '-60%'],
+        itemStyle: {
+          color: 'auto'
+        }
+      },
+      axisTick: {
+        length: 12,
+        lineStyle: {
+          color: 'auto',
+          width: 2
+        }
+      },
+      splitLine: {
+        length: 20,
+        lineStyle: {
+          color: 'auto',
+          width: 5
+        }
+      },
+      axisLabel: {
+        color: '#464646',
+        fontSize: 14,
+        distance: -60,
+        formatter: function (value) {
+          return value + '%'
+        }
+      },
+      title: {
+        offsetCenter: [0, '-20%'],
+        fontSize: 16,
+        color: '#464646'
+      },
+      detail: {
+        fontSize: 30,
+        offsetCenter: [0, '0%'],
+        valueAnimation: true,
+        formatter: function (value) {
+          return Math.round(value) + '%'
+        },
+        color: 'auto'
+      },
+      data: [{
+        value: monitorData.value.memUsage || 0,
+        name: '内存使用率'
+      }]
+    }]
+  })
+  
+  // 磁盘使用率仪表盘
+  const diskChart = echarts.init(document.getElementById('diskChart'))
+  diskChart.setOption({
+    series: [{
+      type: 'gauge',
+      startAngle: 180,
+      endAngle: 0,
+      min: 0,
+      max: 100,
+      splitNumber: 8,
+      axisLine: {
+        lineStyle: {
+          width: 6,
+          color: [
+            [0.3, '#18a058'],
+            [0.7, '#f0a020'],
+            [1, '#d03050']
+          ]
+        }
+      },
+      pointer: {
+        icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
+        length: '12%',
+        width: 20,
+        offsetCenter: [0, '-60%'],
+        itemStyle: {
+          color: 'auto'
+        }
+      },
+      axisTick: {
+        length: 12,
+        lineStyle: {
+          color: 'auto',
+          width: 2
+        }
+      },
+      splitLine: {
+        length: 20,
+        lineStyle: {
+          color: 'auto',
+          width: 5
+        }
+      },
+      axisLabel: {
+        color: '#464646',
+        fontSize: 14,
+        distance: -60,
+        formatter: function (value) {
+          return value + '%'
+        }
+      },
+      title: {
+        offsetCenter: [0, '-20%'],
+        fontSize: 16,
+        color: '#464646'
+      },
+      detail: {
+        fontSize: 30,
+        offsetCenter: [0, '0%'],
+        valueAnimation: true,
+        formatter: function (value) {
+          return Math.round(value) + '%'
+        },
+        color: 'auto'
+      },
+      data: [{
+        value: monitorData.value.diskUsage || 0,
+        name: '磁盘使用率'
+      }]
+    }]
+  })
+  
+  // 网络流量柱状图
+  const netChart = echarts.init(document.getElementById('netChart'))
+  netChart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: ['接收', '发送']
+    },
+    yAxis: {
+      type: 'value',
+      name: 'MB'
+    },
+    series: [{
+      name: '流量',
+      type: 'bar',
+      data: [
+        {
+          value: monitorData.value.netRx || 0,
+          itemStyle: { color: '#2080f0' }
+        },
+        {
+          value: monitorData.value.netTx || 0,
+          itemStyle: { color: '#18a058' }
+        }
+      ],
+      label: {
+        show: true,
+        position: 'top',
+        formatter: '{c} MB'
+      },
+      barWidth: '50%'
+    }]
+  })
+  
+  // 响应式调整
+  window.addEventListener('resize', () => {
+    cpuChart.resize()
+    memChart.resize()
+    diskChart.resize()
+    netChart.resize()
+  })
+}
+
 // 打开控制台
 const openConsole = (server) => {
   currentServer.value = server
@@ -478,7 +944,19 @@ const closeConsole = () => {
   window.removeEventListener('resize', handleResize)
   
   consoleVisible.value = false
+  consoleFullscreen.value = false
   currentServer.value = null
+}
+
+// 切换控制台全屏
+const toggleConsoleFullscreen = () => {
+  consoleFullscreen.value = !consoleFullscreen.value
+  // 延迟调整终端大小
+  setTimeout(() => {
+    if (fitAddon && consoleVisible.value) {
+      fitAddon.fit()
+    }
+  }, 300)
 }
 
 // 窗口大小改变处理
@@ -505,7 +983,6 @@ onMounted(() => {
 }
 
 .terminal-container {
-  height: 600px;
   background: #1e1e1e;
   border-radius: 4px;
   padding: 10px;
@@ -529,5 +1006,40 @@ onMounted(() => {
 
 :deep(.xterm-screen) {
   padding: 8px;
+}
+
+/* 监控面板样式 */
+.monitor-container {
+  min-height: 600px;
+}
+
+.monitor-info-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.monitor-info-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.chart-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.chart-info {
+  text-align: center;
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
 }
 </style>

@@ -75,4 +75,21 @@ public class ServerController {
         }
         return Result.success(server);
     }
+    
+    /**
+     * 获取服务器监控信息
+     */
+    @GetMapping("/monitor/{id}")
+    public Result<?> getMonitorInfo(@PathVariable Long id) {
+        Server server = serverService.getById(id);
+        if (server == null) {
+            return Result.error("服务器不存在");
+        }
+        
+        try {
+            return Result.success(serverService.getMonitorInfo(server));
+        } catch (Exception e) {
+            return Result.error("获取监控信息失败: " + e.getMessage());
+        }
+    }
 }

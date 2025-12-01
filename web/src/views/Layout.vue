@@ -27,7 +27,7 @@
       />
       
       <div class="version-info" v-if="!collapsed">
-        <n-text depth="3" style="font-size: 12px; color: #999;">Mars-Deploy v1.0</n-text>
+        <n-text depth="4" style="font-size: 12px; color: #999;">MarsDeploy v1.1</n-text>
       </div>
     </n-layout-sider>
     
@@ -42,6 +42,18 @@
           
           <div class="header-right">
             <n-space :size="16" align="center">
+              <n-tooltip placement="bottom">
+                <template #trigger>
+                  <n-button text class="icon-button" @click="toggleTheme">
+                    <n-icon size="20">
+                      <MoonSharp v-if="!isDark" />
+                      <SunnySharp v-else />
+                    </n-icon>
+                  </n-button>
+                </template>
+                {{ isDark ? '切换为亮色模式' : '切换为暗黑模式' }}
+              </n-tooltip>
+              
               <n-tooltip placement="bottom">
                 <template #trigger>
                   <n-button text class="icon-button" @click="toggleFullscreen">
@@ -101,7 +113,10 @@ import {
   MenuSharp,
   ExpandSharp,
   ContractSharp,
-  LogoGithub
+  LogoGithub,
+  ExtensionPuzzleSharp,
+  MoonSharp,
+  SunnySharp
 } from '@vicons/ionicons5'
 import { logout } from '@/api/auth'
 import { getUserMenus } from '@/api/menu'
@@ -113,6 +128,7 @@ const collapsed = ref(false)
 const activeKey = ref('/dashboard')
 const menuOptions = ref([])
 const isFullscreen = ref(false)
+const isDark = ref(false)
 
 const user = computed(() => {
   const userStr = localStorage.getItem('user')
@@ -132,7 +148,8 @@ const renderIcon = (iconName) => {
     RocketSharp,
     PeopleSharp,
     ShieldCheckmarkSharp,
-    MenuSharp
+    MenuSharp,
+    ExtensionPuzzleSharp
   }
   const IconComponent = iconMap[iconName]
   return () => h(NIcon, null, { default: () => h(IconComponent || SpeedometerSharp) })
@@ -235,10 +252,22 @@ const openGithub = () => {
   window.open('https://github.com/mars-deploy/mars-deploy', '_blank')
 }
 
+// 主题切换
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  // 触发自定义事件，通知 App.vue 更新主题
+  window.dispatchEvent(new CustomEvent('theme-change', { detail: isDark.value ? 'dark' : 'light' }))
+}
+
 onMounted(() => {
   activeKey.value = route.path
   loadUserMenus()
   document.addEventListener('fullscreenchange', handleFullscreenChange)
+  
+  // 加载保存的主题
+  const savedTheme = localStorage.getItem('theme')
+  isDark.value = savedTheme === 'dark'
 })
 
 onUnmounted(() => {
@@ -327,7 +356,7 @@ onUnmounted(() => {
 .version-info {
   position: absolute;
   bottom: 16px;
-  left: 16px;
+  left: 60px;
   padding: 8px;
 }
 </style>

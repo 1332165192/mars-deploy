@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme-overrides="themeOverrides">
+  <n-config-provider :theme="theme" :theme-overrides="themeOverrides">
     <n-message-provider>
       <n-dialog-provider>
         <AppContent />
@@ -9,10 +9,12 @@
 </template>
 
 <script setup>
-import { defineComponent, h } from 'vue'
-import { NConfigProvider, NMessageProvider, NDialogProvider, useMessage } from 'naive-ui'
+import { defineComponent, h, ref, onMounted, onUnmounted } from 'vue'
+import { NConfigProvider, NMessageProvider, NDialogProvider, useMessage, darkTheme } from 'naive-ui'
 import { setMessageInstance } from '@/utils/message'
 import { RouterView } from 'vue-router'
+
+const theme = ref(null)
 
 const themeOverrides = {
   common: {
@@ -21,6 +23,25 @@ const themeOverrides = {
     primaryColorPressed: '#0c7a43'
   }
 }
+
+// 监听主题变化事件
+const handleThemeChange = (event) => {
+  const newTheme = event.detail
+  theme.value = newTheme === 'dark' ? darkTheme : null
+}
+
+onMounted(() => {
+  // 加载保存的主题
+  const savedTheme = localStorage.getItem('theme')
+  theme.value = savedTheme === 'dark' ? darkTheme : null
+  
+  // 监听主题变化
+  window.addEventListener('theme-change', handleThemeChange)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('theme-change', handleThemeChange)
+})
 
 // 创建一个内部组件来获取 message 实例
 const AppContent = defineComponent({
