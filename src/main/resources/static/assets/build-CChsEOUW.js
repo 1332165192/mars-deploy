@@ -1,1 +1,0 @@
-import{r as e}from"./_plugin-vue_export-helper-BD_vjw2A.js";const s=t=>e.get("/build/list",{params:t}),u=t=>e.get(`/build/${t}`),i=t=>e.post("/build/trigger",{projectId:t}),d=t=>e.delete(`/build/${t}`),n=()=>e.get("/build/stats"),g=()=>e.get("/build/trend"),l=()=>e.get("/build/status-distribution");export{s as a,g as b,l as c,d,u as e,n as g,i as t};
