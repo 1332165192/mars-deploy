@@ -24,15 +24,105 @@
       </n-space>
     </div>
     
-    <n-data-table
-      :columns="columns"
-      :data="dataSource"
-      :pagination="pagination"
-      :loading="loading"
-      :remote="true"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
+    <!-- 服务器卡片列表 -->
+    <n-spin :show="loading">
+      <n-empty v-if="!loading && dataSource.length === 0" description="暂无服务器数据" style="margin-top: 60px;" />
+      
+      <n-grid v-else :x-gap="16" :y-gap="16" :cols="3" responsive="screen">
+        <n-gi v-for="server in dataSource" :key="server.id">
+          <n-card :bordered="true" hoverable class="server-card">
+            <!-- 卡片头部 -->
+            <template #header>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <n-icon size="24" :color="server.status === 'ONLINE' ? '#18a058' : '#d03050'">
+                    <ServerSharp />
+                  </n-icon>
+                  <div>
+                    <div style="font-size: 16px; font-weight: 600;">{{ server.name }}</div>
+                    <n-text depth="3" style="font-size: 12px;">ID: {{ server.id }}</n-text>
+                  </div>
+                </div>
+                <n-badge :dot="true" :type="server.status === 'ONLINE' ? 'success' : 'error'">
+                  <n-tag :type="server.status === 'ONLINE' ? 'success' : 'error'" size="small">
+                    {{ server.status === 'ONLINE' ? '在线' : '离线' }}
+                  </n-tag>
+                </n-badge>
+              </div>
+            </template>
+            
+            <!-- 卡片内容 -->
+            <n-space vertical :size="12">
+              <div class="server-info-item">
+                <n-text depth="3">主机地址：</n-text>
+                <n-text strong>{{ server.host }}</n-text>
+              </div>
+              <div class="server-info-item">
+                <n-text depth="3">端口：</n-text>
+                <n-text strong>{{ server.port }}</n-text>
+              </div>
+              <div class="server-info-item">
+                <n-text depth="3">用户名：</n-text>
+                <n-text strong>{{ server.username }}</n-text>
+              </div>
+              <div class="server-info-item">
+                <n-text depth="3">认证方式：</n-text>
+                <n-tag size="small" :type="server.authType === 'PASSWORD' ? 'info' : 'warning'">
+                  {{ server.authType === 'PASSWORD' ? '密码' : 'SSH Key' }}
+                </n-tag>
+              </div>
+            </n-space>
+            
+            <!-- 卡片底部操作 -->
+            <template #footer>
+              <n-space justify="space-between">
+                <n-space :size="8">
+                  <n-button secondary size="small" type="warning" @click="openMonitor(server)">
+                    <template #icon><n-icon><BarChartSharp /></n-icon></template>
+                    监控
+                  </n-button>
+                  <n-button secondary size="small" type="info" @click="openConsole(server)">
+                    <template #icon><n-icon><TerminalSharp /></n-icon></template>
+                    控制台
+                  </n-button>
+                </n-space>
+                <n-space :size="8">
+                  <n-button secondary size="small" type="primary" :loading="testingId === server.id" @click="testConn(server.id)">
+                    <template #icon><n-icon><CheckmarkCircleSharp /></n-icon></template>
+                  </n-button>
+                  <n-button secondary size="small" type="success" @click="showModal(server)">
+                    <template #icon><n-icon><CreateSharp /></n-icon></template>
+                  </n-button>
+                  <n-popconfirm
+                    @positive-click="handleDelete(server.id)"
+                  >
+                    <template #trigger>
+                      <n-button secondary size="small" type="error">
+                        <template #icon><n-icon><TrashSharp /></n-icon></template>
+                      </n-button>
+                    </template>
+                    确定要删除该服务器吗？如果服务器已关联项目，将无法删除。
+                  </n-popconfirm>
+                </n-space>
+              </n-space>
+            </template>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      
+      <!-- 分页 -->
+      <div v-if="dataSource.length > 0" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <n-pagination
+          v-model:page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :page-count="Math.ceil(pagination.itemCount / pagination.pageSize)"
+          :page-sizes="pagination.pageSizes"
+          show-size-picker
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </n-spin>
     
     <n-modal
       v-model:show="visible"
@@ -239,8 +329,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, h, nextTick } from 'vue'
-import { useMessage, NButton, NSpace, NTag, NBadge, NPopconfirm } from 'naive-ui'
+import { ref, reactive, onMounted, nextTick } from 'vue'
+import { useMessage, NButton, NSpace, NTag, NBadge, NPopconfirm, NPagination, NEmpty } from 'naive-ui'
 import { SearchSharp, AddSharp, TerminalSharp, CheckmarkCircleSharp, CreateSharp, TrashSharp, BarChartSharp, ServerSharp, RefreshSharp, ExpandSharp, ContractSharp, CloseSharp } from '@vicons/ionicons5'
 import { getServerList, addServer, updateServer, deleteServer, testConnection, getServerMonitor } from '@/api/server'
 import { Terminal } from 'xterm'
@@ -272,135 +362,11 @@ const dataSource = ref([])
 
 const pagination = reactive({
   page: 1,
-  pageSize: 10,
+  pageSize: 9,
   itemCount: 0,
   showSizePicker: true,
-  pageSizes: [10, 20, 50]
+  pageSizes: [9, 18, 27]
 })
-
-const columns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '服务器名称', key: 'name' },
-  { title: '主机地址', key: 'host' },
-  { title: '端口', key: 'port', width: 80 },
-  { title: '用户名', key: 'username', width: 100 },
-  { 
-    title: '认证方式', 
-    key: 'authType', 
-    width: 100,
-    render: (row) => {
-      return h(
-        NTag,
-        { size: 'small' },
-        { default: () => row.authType === 'PASSWORD' ? '密码' : 'SSH Key' }
-      )
-    }
-  },
-  { 
-    title: '状态', 
-    key: 'status', 
-    width: 100,
-    render: (row) => {
-      return h(
-        NBadge,
-        {
-          dot: true,
-          type: row.status === 'ONLINE' ? 'success' : 'error'
-        },
-        { default: () => row.status === 'ONLINE' ? '在线' : '离线' }
-      )
-    }
-  },
-  { 
-    title: '操作', 
-    key: 'action', 
-    width: 400,
-    render: (row) => {
-      return h(
-        NSpace,
-        {},
-        {
-          default: () => [
-            h(
-              NButton,
-              {
-                text: true,
-                type: 'warning',
-                size: 'small',
-                onClick: () => openMonitor(row)
-              },
-              { 
-                default: () => '监控面板',
-                icon: () => h('i', { class: 'n-icon' }, [h(BarChartSharp)])
-              }
-            ),
-            h(
-              NButton,
-              {
-                text: true,
-                type: 'info',
-                size: 'small',
-                onClick: () => openConsole(row)
-              },
-              { 
-                default: () => '控制台',
-                icon: () => h('i', { class: 'n-icon' }, [h(TerminalSharp)])
-              }
-            ),
-            h(
-              NButton,
-              {
-                text: true,
-                type: 'primary',
-                size: 'small',
-                loading: testingId.value === row.id,
-                onClick: () => testConn(row.id)
-              },
-              { 
-                default: () => '测试连接',
-                icon: () => h('i', { class: 'n-icon' }, [h(CheckmarkCircleSharp)])
-              }
-            ),
-            h(
-              NButton,
-              {
-                text: true,
-                type: 'success',
-                size: 'small',
-                onClick: () => showModal(row)
-              },
-              { 
-                default: () => '编辑',
-                icon: () => h('i', { class: 'n-icon' }, [h(CreateSharp)])
-              }
-            ),
-            h(
-              NPopconfirm,
-              {
-                onPositiveClick: () => handleDelete(row.id)
-              },
-              {
-                default: () => '确定要删除该服务器吗？如果服务器已关联项目，将无法删除。',
-                trigger: () => h(
-                  NButton,
-                  {
-                    text: true,
-                    type: 'error',
-                    size: 'small'
-                  },
-                  { 
-                    default: () => '删除',
-                    icon: () => h('i', { class: 'n-icon' }, [h(TrashSharp)])
-                  }
-                )
-              }
-            )
-          ]
-        }
-      )
-    }
-  }
-]
 
 const formState = reactive({
   name: '',
@@ -985,6 +951,24 @@ onMounted(() => {
   margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
+}
+
+/* 服务器卡片样式 */
+.server-card {
+  height: 100%;
+  transition: all 0.3s;
+  border-radius: 8px;
+}
+
+.server-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.server-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .terminal-container {

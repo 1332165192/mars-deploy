@@ -24,15 +24,105 @@
       </n-space>
     </div>
     
-    <n-data-table
-      :columns="columns"
-      :data="dataSource"
-      :pagination="pagination"
-      :loading="loading"
-      :remote="true"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
+    <!-- 项目卡片列表 -->
+    <n-spin :show="loading">
+      <n-empty v-if="!loading && dataSource.length === 0" description="暂无项目数据" style="margin-top: 60px;" />
+      
+      <n-grid v-else :x-gap="16" :y-gap="16" :cols="3" responsive="screen">
+        <n-gi v-for="project in dataSource" :key="project.id">
+          <n-card :bordered="true" hoverable class="project-card">
+            <!-- 卡片头部 -->
+            <template #header>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <n-icon size="24" :color="project.projectType === 'JAVA' ? '#6db33f' : '#18a058'">
+                    <LeafSharp v-if="project.projectType === 'JAVA'" />
+                    <LogoVue v-else />
+                  </n-icon>
+                  <div>
+                    <div style="font-size: 16px; font-weight: 600;">{{ project.name }}</div>
+                    <n-text depth="3" style="font-size: 12px;">ID: {{ project.id }}</n-text>
+                  </div>
+                </div>
+                <n-tag :type="project.projectType === 'JAVA' ? 'info' : 'success'" size="small">
+                  {{ project.projectType }}
+                </n-tag>
+              </div>
+            </template>
+            
+            <!-- 卡片内容 -->
+            <n-space vertical :size="12">
+              <div v-if="project.description" class="project-info-item">
+                <n-text depth="3">项目描述：</n-text>
+                <n-text>{{ project.description }}</n-text>
+              </div>
+              <div class="project-info-item">
+                <n-text depth="3">Git地址：</n-text>
+                <n-text>{{ project.gitUrl }}</n-text>
+              </div>
+              <div class="project-info-item">
+                <n-text depth="3">分支：</n-text>
+                <n-tag size="small" type="warning">{{ project.branch }}</n-tag>
+              </div>
+              <div class="project-info-item">
+                <n-text depth="3">创建时间：</n-text>
+                <n-text>{{ project.createTime }}</n-text>
+              </div>
+            </n-space>
+            
+            <!-- 卡片底部操作 -->
+            <template #footer>
+              <n-space justify="space-between">
+                <!-- 部署按钮 -->
+                <n-popconfirm
+                  v-if="isProjectAdmin || userPermissions.includes('DEVELOPER')"
+                  @positive-click="triggerBuildAction(project.id)"
+                >
+                  <template #trigger>
+                    <n-button secondary size="small" type="primary">
+                      <template #icon><n-icon><PlayCircleSharp /></n-icon></template>
+                      立即构建
+                    </n-button>
+                  </template>
+                  确定要部署该项目吗？
+                </n-popconfirm>
+                
+                <!-- 管理按钮组 -->
+                <n-space v-if="canManageProject" :size="8">
+                  <n-button secondary size="small" type="warning" @click="showMemberModal(project.id)">
+                    <template #icon><n-icon><PeopleSharp /></n-icon></template>
+                  </n-button>
+                  <n-button secondary size="small" type="success" @click="showModal(project)">
+                    <template #icon><n-icon><CreateSharp /></n-icon></template>
+                  </n-button>
+                  <n-popconfirm @positive-click="handleDelete(project.id)">
+                    <template #trigger>
+                      <n-button secondary size="small" type="error">
+                        <template #icon><n-icon><TrashSharp /></n-icon></template>
+                      </n-button>
+                    </template>
+                    确定要删除该项目吗？
+                  </n-popconfirm>
+                </n-space>
+              </n-space>
+            </template>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      
+      <!-- 分页 -->
+      <div v-if="dataSource.length > 0" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <n-pagination
+          v-model:page="pagination.page"
+          v-model:page-size="pagination.pageSize"
+          :page-count="Math.ceil(pagination.itemCount / pagination.pageSize)"
+          :page-sizes="pagination.pageSizes"
+          show-size-picker
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </n-spin>
     
     <n-modal
       v-model:show="visible"
@@ -169,10 +259,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, h, computed } from 'vue'
+import { ref, reactive, onMounted, computed, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMessage, NButton, NSpace, NTag, NPopconfirm, NSelect } from 'naive-ui'
-import { SearchSharp, AddSharp, RocketSharp, CreateSharp, TrashSharp, PeopleSharp, PlayCircleSharp } from '@vicons/ionicons5'
+import { useMessage, NButton, NSpace, NTag, NPopconfirm, NSelect, NPagination, NEmpty, NEllipsis } from 'naive-ui'
+import { SearchSharp, AddSharp, RocketSharp, CreateSharp, TrashSharp, PeopleSharp, PlayCircleSharp, LogoVue, LeafSharp } from '@vicons/ionicons5'
 import { getProjectList, getProject, addProject, updateProject, deleteProject, getProjectMembers, assignProjectMembers } from '@/api/project'
 import { getServerList } from '@/api/server'
 import { triggerBuild } from '@/api/build'
@@ -196,10 +286,10 @@ const projectMembers = ref([])
 
 const pagination = reactive({
   page: 1,
-  pageSize: 10,
+  pageSize: 9,
   itemCount: 0,
   showSizePicker: true,
-  pageSizes: [10, 20, 50]
+  pageSizes: [9, 18, 27]
 })
 
 const projectTypeOptions = [
@@ -234,123 +324,6 @@ const isProjectAdmin = computed(() =>
   userPermissions.value.includes('ADMIN') || userPermissions.value.includes('PROJECT_ADMIN')
 )
 const canManageProject = computed(() => isProjectAdmin.value)
-
-const columns = [
-  { title: 'ID', key: 'id',width: 60 },
-  { title: '项目名称', key: 'name' },
-  { 
-    title: '项目类型', 
-    key: 'projectType', 
-    render: (row) => {
-      return h(
-        NTag,
-        { type: row.projectType === 'JAVA' ? 'info' : 'success', size: 'small' },
-        { default: () => row.projectType }
-      )
-    }
-  },
-  { title: 'Git地址', key: 'gitUrl', ellipsis: { tooltip: true } },
-  { title: '分支', key: 'branch' },
-  { title: '创建时间', key: 'createTime' },
-  { 
-    title: '操作', 
-    key: 'action', 
-    width: 350,
-    render: (row) => {
-      const buttons = [
-
-      ]
-      
-      // 触发构建按钮 - 管理员、项目管理员、开发者可见
-      if (isProjectAdmin.value || userPermissions.value.includes('DEVELOPER')) {
-        buttons.push(
-          h(
-            NPopconfirm,
-            {
-              onPositiveClick: () => triggerBuildAction(row.id)
-            },
-            {
-              default: () => '确定要部署该项目吗？',
-              trigger: () => h(
-                NButton,
-                {
-                  text: true,
-                  type: 'info',
-                  size: 'small'
-                },
-                { 
-                  default: () => '部署项目',
-                  icon: () => h('i', { class: 'n-icon' }, [h(PlayCircleSharp)])
-                }
-              )
-            }
-          )
-        )
-      }
-
-      // 编辑按钮 - 管理员、项目管理员可见
-      if (canManageProject.value) {
-        buttons.push(
-          h(
-            NButton,
-            {
-              text: true,
-              type: 'success',
-              size: 'small',
-              onClick: () => showModal(row)
-            },
-            { 
-              default: () => '编辑',
-              icon: () => h('i', { class: 'n-icon' }, [h(CreateSharp)])
-            }
-          ),
-          h(
-            NButton,
-            {
-              text: true,
-              type: 'warning',
-              size: 'small',
-              onClick: () => showMemberModal(row.id)
-            },
-            { 
-              default: () => '分配成员',
-              icon: () => h('i', { class: 'n-icon' }, [h(PeopleSharp)])
-            }
-          )
-        )
-      }
-      
-      // 删除按钮 - 管理员、项目管理员可见
-      if (canManageProject.value) {
-        buttons.push(
-          h(
-            NPopconfirm,
-            {
-              onPositiveClick: () => handleDelete(row.id)
-            },
-            {
-              default: () => '确定要删除吗？',
-              trigger: () => h(
-                NButton,
-                {
-                  text: true,
-                  type: 'error',
-                  size: 'small'
-                },
-                { 
-                  default: () => '删除',
-                  icon: () => h('i', { class: 'n-icon' }, [h(TrashSharp)])
-                }
-              )
-            }
-          )
-        )
-      }
-      
-      return h(NSpace, {}, { default: () => buttons })
-    }
-  }
-]
 
 const formState = reactive({
   name: '',
@@ -929,5 +902,24 @@ onMounted(() => {
   margin-bottom: 16px;
   display: flex;
   justify-content: space-between;
+}
+
+/* 项目卡片样式 */
+.project-card {
+  height: 100%;
+  transition: all 0.3s;
+  border-radius: 8px;
+}
+
+.project-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.project-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 </style>
