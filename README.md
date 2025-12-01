@@ -5,6 +5,7 @@
 </p>
 
 ## 项目简介
+原项目地址：https://gitee.com/Marsfactory/mars-deploy.git
 
 MarsDeploy 是一套用于 Java / Vue 项目的自动构建、自动上传、自动部署的平台。提供可视化项目管理、服务器管理、构建任务、实时日志、文件管理、服务器监控等能力。
 
