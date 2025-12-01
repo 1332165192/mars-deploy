@@ -267,7 +267,16 @@ public class BuildExecutorService {
             logConsumer.accept("[Deploy] SSH连接成功");
 
             // 上传文件
-            String uploadPath = "/home/deploy/" + project.getName();
+            String uploadPath = project.getDeployPath();
+            if (uploadPath == null || uploadPath.trim().isEmpty()) {
+                uploadPath = "/home/deploy/";
+            }
+            // 确保路径以 / 结尾
+            if (!uploadPath.endsWith("/")) {
+                uploadPath += "/";
+            }
+            uploadPath += project.getName();
+            
             logConsumer.accept("[Deploy] 创建部署目录: " + uploadPath);
             SshUtils.executeCommand(session, "mkdir -p " + uploadPath, logConsumer);
 

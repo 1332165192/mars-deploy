@@ -95,9 +95,9 @@
             <n-space vertical size="small">
               <n-text strong style="font-size: 16px; color: #18a058;">程序员Mars</n-text>
               <n-text depth="3" style="font-size: 13px;">• 抖音技术博主</n-text>
-              <n-text depth="3" style="font-size: 13px;">• 精通 Java/Python 开发</n-text>
-              <n-text depth="3" style="font-size: 13px;">• 分布式系统架构师</n-text>
-              <n-text depth="3" style="font-size: 13px;">• 爬虫技术专家</n-text>
+              <n-text depth="3" style="font-size: 13px;">• 全栈 Java/Python 开发</n-text>
+              <n-text depth="3" style="font-size: 13px;">• 8年大厂技术专家</n-text>
+              <n-text depth="3" style="font-size: 13px;">• 精通Python爬虫逆向</n-text>
             </n-space>
           </div>
         </n-gi>

@@ -95,6 +95,7 @@ public class ProjectController {
         project.setBuildDir((String) params.get("buildDir"));
         project.setAutoDeploy(params.get("autoDeploy") != null ? (Integer) params.get("autoDeploy") : 0);
         project.setDeployScript((String) params.get("deployScript"));
+        project.setDeployPath((String) params.get("deployPath"));
         project.setAppPort(params.get("appPort") != null ? (Integer) params.get("appPort") : 8080);
         
         projectService.save(project);
@@ -138,6 +139,7 @@ public class ProjectController {
         project.setBuildDir((String) params.get("buildDir"));
         project.setAutoDeploy(params.get("autoDeploy") != null ? (Integer) params.get("autoDeploy") : 0);
         project.setDeployScript((String) params.get("deployScript"));
+        project.setDeployPath((String) params.get("deployPath"));
         project.setAppPort(params.get("appPort") != null ? (Integer) params.get("appPort") : 8080);
         
         projectService.updateById(project);

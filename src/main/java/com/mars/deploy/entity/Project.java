@@ -34,6 +34,8 @@ public class Project {
     
     private String deployScript;
     
+    private String deployPath;
+    
     private Integer appPort;
     
     @TableField(fill = FieldFill.INSERT)

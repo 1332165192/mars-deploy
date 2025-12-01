@@ -122,6 +122,13 @@
           <n-input-number v-model:value="formState.appPort" :min="1" :max="65535" placeholder="8080" style="width: 100%" />
         </n-form-item>
         
+        <n-form-item v-if="formState.autoDeploy === 1" label="部署目录" path="deployPath">
+          <n-input v-model:value="formState.deployPath" placeholder="/home/deploy/" />
+          <template #feedback>
+            <n-text depth="3" style="font-size: 12px;">服务器上存放应用的目录，默认为 /home/deploy/</n-text>
+          </template>
+        </n-form-item>
+        
         <n-form-item v-if="formState.autoDeploy === 1" label="部署脚本" path="deployScript">
           <n-input
             v-model:value="formState.deployScript"
@@ -358,6 +365,7 @@ const formState = reactive({
   serverIds: [],
   autoDeploy: 0,
   deployScript: '',
+  deployPath: '/home/deploy/',
   appPort: 8080
 })
 
@@ -440,6 +448,7 @@ const showModal = async (record) => {
         serverIds: serverIds,
         autoDeploy: project.autoDeploy != null ? project.autoDeploy : 0,
         deployScript: project.deployScript || generateDefaultDeployScript(project.projectType),
+        deployPath: project.deployPath || '/home/deploy/',
         appPort: project.appPort || 8080
       })
     } catch (error) {
@@ -461,6 +470,7 @@ const showModal = async (record) => {
       serverIds: [],
       autoDeploy: 0,
       deployScript: generateDefaultDeployScript('JAVA'),
+      deployPath: '/home/deploy/',
       appPort: 8080
     })
   }
@@ -475,6 +485,7 @@ const handleOk = async () => {
       ...formState,
       serverIds: formState.serverIds || [],
       autoDeploy: formState.autoDeploy || 0,
+      deployPath: formState.deployPath || '/home/deploy/',
       appPort: formState.appPort || 8080
     }
     
@@ -634,7 +645,6 @@ echo "========================================"`
 APP_NAME="app"
 APP_PORT={{appPort}}
 DEPLOY_DIR="{{uploadPath}}"
-JAR_FILE=\$(ls \$DEPLOY_DIR/*.jar | grep -v '\\.bak\$' | head -n 1)
 LOG_FILE="\$DEPLOY_DIR/app.log"
 
 echo "========================================"
@@ -670,9 +680,13 @@ fi
 
 # 3. 重命名新上传的jar
 echo "[步骤3] 准备新版本..."
+# 备份后重新查找 jar 文件（排除 .bak 文件）
+JAR_FILE=\$(ls \$DEPLOY_DIR/*.jar 2>/dev/null | grep -v '\\.bak\$' | head -n 1)
+
 if [ -f "\$JAR_FILE" ]; then
   cp \$JAR_FILE \$DEPLOY_DIR/app.jar
   echo "已准备新版本: app.jar"
+  echo "原文件: \$(basename \$JAR_FILE)"
 else
   echo "错误: 未找到jar文件"
   exit 1

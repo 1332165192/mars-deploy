@@ -270,6 +270,13 @@ const loadServers = async () => {
       label: server.name,
       value: server.id
     }))
+    
+    // 默认选择第一个服务器
+    if (serverOptions.value.length > 0 && !selectedServerId.value) {
+      selectedServerId.value = serverOptions.value[0].value
+      // 加载已安装插件
+      loadInstalledPlugins()
+    }
   } catch (error) {
     message.error('加载服务器列表失败')
   }
