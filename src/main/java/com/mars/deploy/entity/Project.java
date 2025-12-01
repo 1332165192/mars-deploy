@@ -1,6 +1,7 @@
 package com.mars.deploy.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -37,7 +38,8 @@ public class Project {
     private String deployPath;
     
     private Integer appPort;
-    
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     
@@ -46,4 +48,9 @@ public class Project {
     
     @TableLogic
     private Integer deleted;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    // 最近部署时间（非数据库字段）
+    @TableField(exist = false)
+    private LocalDateTime lastDeployTime;
 }

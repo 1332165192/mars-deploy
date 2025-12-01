@@ -1,5 +1,6 @@
 package com.mars.deploy.controller;
 
+import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
 import com.mars.deploy.entity.Plugin;
 import com.mars.deploy.entity.PluginInstall;
@@ -55,6 +56,7 @@ public class PluginController {
     /**
      * 安装插件
      */
+    @OperationLog(module = "插件管理", type = "安装", description = "安装插件")
     @PostMapping("/install")
     public Result<Long> install(@RequestBody Map<String, Object> params) {
         Long serverId = Long.valueOf(params.get("serverId").toString());
@@ -68,6 +70,7 @@ public class PluginController {
     /**
      * 卸载插件
      */
+    @OperationLog(module = "插件管理", type = "卸载", description = "卸载插件")
     @DeleteMapping("/uninstall/{installId}")
     public Result<String> uninstall(@PathVariable Long installId) {
         pluginInstallService.uninstall(installId);
@@ -90,12 +93,14 @@ public class PluginController {
         return Result.success(pluginService.list());
     }
     
+    @OperationLog(module = "插件管理", type = "新增", description = "添加插件")
     @PostMapping("/manage")
     public Result<String> savePlugin(@RequestBody Plugin plugin) {
         pluginService.saveOrUpdate(plugin);
         return Result.success("保存成功");
     }
     
+    @OperationLog(module = "插件管理", type = "删除", description = "删除插件")
     @DeleteMapping("/manage/{id}")
     public Result<String> deletePlugin(@PathVariable Long id) {
         pluginService.removeById(id);

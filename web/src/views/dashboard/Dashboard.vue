@@ -69,18 +69,114 @@
       </n-gi>
     </n-grid>
     
-    <!-- 最近构建 表格 -->
-    <n-card title="最近构建" :bordered="false" style="margin-top: 16px;">
-      <template #header-extra>
-        <n-text depth="3" style="font-size: 14px;">展示最近10条构建记录</n-text>
-      </template>
-      <n-data-table
-        :columns="columns"
-        :data="recentBuilds"
-        :loading="loading"
-        :pagination="false"
-      />
-    </n-card>
+    <!-- 最近活动 -->
+    <n-grid :x-gap="16" :y-gap="16" :cols="2" style="margin-top: 16px;" responsive="screen">
+      <!-- 最近构建 -->
+      <n-gi>
+        <n-card title="最近构建" :bordered="false">
+          <template #header-extra>
+            <n-button text type="primary" @click="router.push('/build')">查看更多</n-button>
+          </template>
+          <n-spin :show="buildLoading">
+            <n-empty v-if="!buildLoading && recentBuilds.length === 0" description="暂无构建记录" size="small" />
+            <n-list v-else hoverable clickable>
+              <n-list-item v-for="build in recentBuilds" :key="build.id" @click="viewBuildDetail(build.id)">
+                <n-space justify="space-between" align="center" style="width: 100%;">
+                  <n-space align="center" :size="12">
+                    <n-icon size="20" :color="getStatusColor(build.status)">
+                      <RocketSharp />
+                    </n-icon>
+                    <div>
+                      <n-ellipsis style="max-width: 300px;">
+                        {{ build.projectName }}
+                      </n-ellipsis>
+                      <n-space :size="4" style="margin-top: 4px;">
+                        <n-tag :type="getStatusType(build.status)" size="tiny">{{ getStatusText(build.status) }}</n-tag>
+                        <n-text depth="3" style="font-size: 12px;">· {{ build.triggerByName }}</n-text>
+                      </n-space>
+                    </div>
+                  </n-space>
+                  <n-text depth="3" style="font-size: 12px; white-space: nowrap;">{{ build.startTime }}</n-text>
+                </n-space>
+              </n-list-item>
+            </n-list>
+          </n-spin>
+        </n-card>
+      </n-gi>
+      
+      <!-- 日志切换展示 -->
+      <n-gi>
+        <n-card :bordered="false">
+          <template #header>
+            <n-tabs v-model:value="logTabValue" type="line" @update:value="handleLogTabChange">
+              <n-tab name="operation" tab="最近操作" />
+              <n-tab name="login" tab="最近登录" />
+            </n-tabs>
+          </template>
+          <template #header-extra>
+            <n-button text type="primary" @click="router.push(logTabValue === 'operation' ? '/log/operation' : '/log/login')">查看更多</n-button>
+          </template>
+          
+          <!-- 操作日志 -->
+          <div v-show="logTabValue === 'operation'">
+            <n-spin :show="opLogLoading">
+              <n-empty v-if="!opLogLoading && recentOpLogs.length === 0" description="暂无操作记录" size="small" />
+              <n-list v-else hoverable clickable>
+                <n-list-item v-for="log in recentOpLogs" :key="log.id">
+                  <n-space justify="space-between" align="center" style="width: 100%;">
+                    <n-space align="center" :size="12">
+                      <n-icon size="20" :color="log.status === 1 ? '#18a058' : '#d03050'">
+                        <CheckmarkCircleSharp v-if="log.status === 1" />
+                        <CloseCircleSharp v-else />
+                      </n-icon>
+                      <div>
+                        <n-ellipsis style="max-width: 280px;">
+                          {{ log.module }} - {{ log.operationType }}
+                        </n-ellipsis>
+                        <n-space :size="4" style="margin-top: 4px;">
+                          <n-text depth="3" style="font-size: 12px;">{{ log.username }}</n-text>
+                          <n-text depth="3" style="font-size: 12px;">· {{ log.description }}</n-text>
+                        </n-space>
+                      </div>
+                    </n-space>
+                    <n-text depth="3" style="font-size: 12px; white-space: nowrap;">{{ log.operationTime }}</n-text>
+                  </n-space>
+                </n-list-item>
+              </n-list>
+            </n-spin>
+          </div>
+          
+          <!-- 登录日志 -->
+          <div v-show="logTabValue === 'login'">
+            <n-spin :show="loginLogLoading">
+              <n-empty v-if="!loginLogLoading && recentLoginLogs.length === 0" description="暂无登录记录" size="small" />
+              <n-list v-else hoverable clickable>
+                <n-list-item v-for="log in recentLoginLogs" :key="log.id">
+                  <n-space justify="space-between" align="center" style="width: 100%;">
+                    <n-space align="center" :size="12">
+                      <n-icon size="20" :color="log.status === 1 ? '#18a058' : '#d03050'">
+                        <LogInSharp v-if="log.status === 1" />
+                        <LogOutSharp v-else />
+                      </n-icon>
+                      <div>
+                        <n-ellipsis style="max-width: 280px;">
+                          {{ log.username }}
+                        </n-ellipsis>
+                        <n-space :size="4" style="margin-top: 4px;">
+                          <n-tag :type="log.status === 1 ? 'success' : 'error'" size="tiny">{{ log.status === 1 ? '成功' : '失败' }}</n-tag>
+                          <n-text depth="3" style="font-size: 12px;">· {{ log.ipAddress }}</n-text>
+                        </n-space>
+                      </div>
+                    </n-space>
+                    <n-text depth="3" style="font-size: 12px; white-space: nowrap;">{{ log.loginTime }}</n-text>
+                  </n-space>
+                </n-list-item>
+              </n-list>
+            </n-spin>
+          </div>
+        </n-card>
+      </n-gi>
+    </n-grid>
     
     <!-- 项目信息 -->
     <n-card :bordered="false" style="margin-top: 16px;">
@@ -202,15 +298,23 @@ import {
   ServerSharp,
   RocketSharp,
   CheckmarkCircleSharp,
+  CloseCircleSharp,
+  LogInSharp,
+  LogOutSharp,
   PersonSharp,
   CubeSharp,
   CodeSlashSharp
 } from '@vicons/ionicons5'
 import * as echarts from 'echarts'
 import { getBuildList, getStats, getBuildTrend, getStatusDistribution } from '@/api/build'
+import { getOperationLogList } from '@/api/log'
+import { getLoginLogList } from '@/api/log'
 
 const router = useRouter()
 const loading = ref(false)
+const buildLoading = ref(false)
+const opLogLoading = ref(false)
+const loginLogLoading = ref(false)
 const buildTrendChart = ref(null)
 const buildStatusChart = ref(null)
 
@@ -222,42 +326,9 @@ const stats = ref({
 })
 
 const recentBuilds = ref([])
-
-const columns = [
-  { title: 'ID', key: 'id', width: 80 },
-  { title: '项目名称', key: 'projectName' },
-  { 
-    title: '状态', 
-    key: 'status',
-    render: (row) => {
-      return h(
-        NTag,
-        {
-          type: getStatusType(row.status),
-          size: 'small'
-        },
-        { default: () => getStatusText(row.status) }
-      )
-    }
-  },
-  { title: '触发人', key: 'triggerByName' },
-  { title: '开始时间', key: 'startTime' },
-  {
-    title: '操作',
-    key: 'action',
-    render: (row) => {
-      return h(
-        NButton,
-        {
-          text: true,
-          type: 'primary',
-          onClick: () => viewDetail(row.id)
-        },
-        { default: () => '查看详情' }
-      )
-    }
-  }
-]
+const recentOpLogs = ref([])
+const recentLoginLogs = ref([])
+const logTabValue = ref('operation') // 日志tab默认显示操作日志
 
 const getStatusType = (status) => {
   const map = {
@@ -281,10 +352,28 @@ const getStatusText = (status) => {
 
 const viewDetail = (id) => {
   if (!id) {
-    console.error('构建ID不存在')
+    console.error('构建 ID不存在')
     return
   }
   router.push(`/build-detail/${id}`)
+}
+
+const viewBuildDetail = (id) => {
+  if (!id) {
+    console.error('构建 ID不存在')
+    return
+  }
+  router.push(`/build-detail/${id}`)
+}
+
+const getStatusColor = (status) => {
+  const map = {
+    'PENDING': '#f0a020',
+    'RUNNING': '#2080f0',
+    'SUCCESS': '#18a058',
+    'FAILED': '#d03050'
+  }
+  return map[status] || '#999'
 }
 
 // 初始化构建趋势图表
@@ -430,20 +519,14 @@ const loadData = async () => {
   try {
     loading.value = true
     
-    // 加载统计数据和最近构建列表
-    const [statsData, buildData] = await Promise.all([
-      getStats(),
-      getBuildList({ current: 1, size: 10 })
-    ])
+    // 加载统计数据
+    const statsData = await getStats()
     
     // 设置统计数据
     stats.value.projectCount = statsData.projectCount || 0
     stats.value.serverCount = statsData.serverCount || 0
     stats.value.buildCount = statsData.buildCount || 0
     stats.value.successRate = statsData.successRate || 0
-    
-    // 设置最近构建列表（默认展示最近10条）
-    recentBuilds.value = buildData.records || []
     
     // 初始化图表
     setTimeout(() => {
@@ -457,8 +540,60 @@ const loadData = async () => {
   }
 }
 
+// 加载最近构建
+const loadRecentBuilds = async () => {
+  try {
+    buildLoading.value = true
+    const buildData = await getBuildList({ current: 1, size: 5 })
+    recentBuilds.value = buildData.records || []
+  } catch (error) {
+    console.error('加载构建记录失败:', error)
+  } finally {
+    buildLoading.value = false
+  }
+}
+
+// 加载最近操作日志
+const loadRecentOpLogs = async () => {
+  try {
+    opLogLoading.value = true
+    const logData = await getOperationLogList({ current: 1, size: 5 })
+    recentOpLogs.value = logData.records || []
+  } catch (error) {
+    console.error('加载操作日志失败:', error)
+  } finally {
+    opLogLoading.value = false
+  }
+}
+
+// 加载最近登录日志
+const loadRecentLoginLogs = async () => {
+  try {
+    loginLogLoading.value = true
+    const logData = await getLoginLogList({ current: 1, size: 5 })
+    recentLoginLogs.value = logData.records || []
+  } catch (error) {
+    console.error('加载登录日志失败:', error)
+  } finally {
+    loginLogLoading.value = false
+  }
+}
+
+// 处理日志tab切换
+const handleLogTabChange = (value) => {
+  // tab切换时可以重新加载数据
+  if (value === 'operation' && recentOpLogs.value.length === 0) {
+    loadRecentOpLogs()
+  } else if (value === 'login' && recentLoginLogs.value.length === 0) {
+    loadRecentLoginLogs()
+  }
+}
+
 onMounted(() => {
   loadData()
+  loadRecentBuilds()
+  loadRecentOpLogs()
+  loadRecentLoginLogs()
 })
 </script>
 

@@ -27,7 +27,7 @@
       />
 
       <div class="version-info" v-if="!collapsed">
-        <n-text depth="4" style="font-size: 12px; color: #999;">MarsDeploy v1.1</n-text>
+        <n-text depth="4" style="font-size: 12px; color: #999;">MarsDeploy v1.2</n-text>
       </div>
     </n-layout-sider>
 

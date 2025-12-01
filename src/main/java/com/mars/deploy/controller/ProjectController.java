@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mars.deploy.annotation.OperationLog;
 import com.mars.deploy.common.Result;
+import com.mars.deploy.entity.Build;
 import com.mars.deploy.entity.Project;
 import com.mars.deploy.entity.ProjectMember;
+import com.mars.deploy.service.BuildService;
 import com.mars.deploy.service.ProjectService;
 import com.mars.deploy.service.ProjectMemberService;
 import com.mars.deploy.service.ProjectServerService;
@@ -33,6 +35,9 @@ public class ProjectController {
     
     @Autowired
     private UserRoleService userRoleService;
+    
+    @Autowired
+    private BuildService buildService;
     
     @GetMapping("/list")
     public Result<Page<Project>> list(
@@ -64,7 +69,22 @@ public class ProjectController {
         
         wrapper.orderByDesc(Project::getCreateTime);
         
-        return Result.success(projectService.page(page, wrapper));
+        Page<Project> projectPage = projectService.page(page, wrapper);
+        
+        // 填充最近部署时间
+        projectPage.getRecords().forEach(project -> {
+            LambdaQueryWrapper<Build> buildWrapper = new LambdaQueryWrapper<>();
+            buildWrapper.eq(Build::getProjectId, project.getId())
+                       .eq(Build::getStatus, "SUCCESS")
+                       .orderByDesc(Build::getEndTime)
+                       .last("LIMIT 1");
+            Build lastBuild = buildService.getOne(buildWrapper);
+            if (lastBuild != null && lastBuild.getEndTime() != null) {
+                project.setLastDeployTime(lastBuild.getEndTime());
+            }
+        });
+        
+        return Result.success(projectPage);
     }
     
     @GetMapping("/{id}")

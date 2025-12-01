@@ -56,7 +56,7 @@
                 <n-text depth="3">项目描述：</n-text>
                 <n-text>{{ project.description }}</n-text>
               </div>
-              <div class="project-info-item">
+              <div class="project-info-item" style="display: flex;flex-direction: row">
                 <n-text depth="3">Git地址：</n-text>
                 <n-text>{{ project.gitUrl }}</n-text>
               </div>
@@ -67,6 +67,10 @@
               <div class="project-info-item">
                 <n-text depth="3">创建时间：</n-text>
                 <n-text>{{ project.createTime }}</n-text>
+              </div>
+              <div v-if="project.lastDeployTime" class="project-info-item">
+                <n-text depth="3">最近部署：</n-text>
+                <n-text type="success">{{ project.lastDeployTime }}</n-text>
               </div>
             </n-space>
             
